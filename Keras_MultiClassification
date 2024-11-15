@@ -1,0 +1,113 @@
+import pandas as pd
+from sklearn import datasets
+
+iris = datasets.load_iris()
+
+x = iris.data
+y = iris.target
+
+f = iris.feature_names
+
+t = iris.target_names
+
+f
+
+t
+
+x
+
+# Model Initilization
+
+from sklearn.model_selection import train_test_split
+
+x_train, x_test, y_train, y_test = train_test_split(x,y, test_size=0.2, random_state = 100)
+
+# TensorFlow (Creating Model)
+
+import tensorflow as tf
+
+from tensorflow.keras.models import Sequential
+from tensorflow.keras.layers import Dense, Activation
+
+model = Sequential()
+
+model.add(Dense(4, activation='relu'))
+model.add(Dense(3, activation='relu'))  
+model.add(Dense(3, activation='softmax')) 
+
+model.compile(optimizer='rmsprop',
+              loss='sparse_categorical_crossentropy',  
+              metrics=['accuracy'])
+
+# Neural Netwok (Training)
+
+model.fit(x_train, y_train, epochs=300)
+
+loss = model.history.history['loss']
+
+import seaborn as sns
+import matplotlib.pyplot as plt
+
+sns.lineplot(x=range(len(loss)),y=loss)
+plt.title("Training Loss per Epoch")
+
+accuracy = model.history.history['accuracy']
+
+sns.lineplot(x=range(len(accuracy)),y=accuracy)
+plt.title("Training accuracy per Epoch")
+
+# Model Evaluation
+
+training_score = model.evaluate(x_train,y_train,verbose=0)
+test_score = model.evaluate(x_test,y_test,verbose=0)
+
+training_score
+
+test_score
+
+test_predictions = model.predict(x_test)
+
+test_predictions
+
+pred_df = pd.DataFrame(y_test,columns=['Test Y'])
+
+pred_df
+
+test_predictions = pd.Series(test_predictions.reshape(-1,))
+
+test_predictions
+
+pred_df = pd.concat([pred_df,test_predictions],axis=1)
+
+pred_df.columns = ['Test Y','Model Predictions']
+
+pred_df
+
+sns.scatterplot(x='Test Y',y='Model Predictions',data=pred_df)
+
+pred_df['Error'] = pred_df['Test Y'] - pred_df['Model Predictions']
+
+sns.distplot(pred_df['Error'],bins=50)
+
+# Predicting on brand new data
+
+import numpy as np
+
+new_gem = np.array([[1.2,4.5,6.4,2.1]])
+
+prediction= model.predict(np.array([[1.2,4.5,6.4,2.1]]))
+
+predicted_class = np.argmax(prediction,axis=1)
+
+predicted_class
+
+# Saving and Loading a Model
+
+from tensorflow.keras.models import load_model
+
+model.save('iris_model.h5')
+
+later_model = load_model('iris_model.h5')
+
+later_model.predict(new_gem)
+
