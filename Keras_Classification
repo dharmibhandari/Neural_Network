@@ -1,0 +1,95 @@
+import pandas as pd
+
+df = pd.read_csv('Credit_card.csv')
+
+df.head()
+
+df.drop('i#clientid', axis=1, inplace=True)
+
+df
+
+df.rename(columns={'income': 'Feature1', 'age': 'Feature2', 'loan':'Feature3', 'c#default':'Default'}, inplace=True)
+
+df.head()
+
+df['Default'].value_counts()
+
+
+x = df[['Feature1','Feature1','Feature1']].values
+y = df[['Default']].values
+
+from sklearn.model_selection import train_test_split
+x_train, x_test, y_train, y_test = train_test_split(x,y, test_size=0.2, random_state = 100)
+
+# Scaling
+
+from sklearn.preprocessing import StandardScaler
+
+std = StandardScaler()
+
+std.fit(x_train)
+
+x_train = std.transform(x_train)
+x_test = std.transform(x_test)
+
+# Tensorflow Creating model
+
+import tensorflow as tf
+
+from tensorflow.keras.models import Sequential
+from tensorflow.keras.layers import Dense, Activation,Dropout
+
+
+model = Sequential()
+
+model.add(Dense(12,activation='relu'))#input layer
+model.add(Dropout(0.2))
+model.add(Dense(9,activation='relu'))
+model.add(Dropout(0.2))
+
+model.add(Dense(1,activation='sigmoid')) #output layer
+
+model.compile(optimizer = 'rmsprop', loss='binary_crossentropy',metrics=['accuracy'])
+
+# Trainng
+
+model.fit(x_train,y_train,epochs=125)
+
+# Evaluation
+
+model.history.history
+
+loss = model.history.history['loss']
+
+import seaborn as sns
+import matplotlib.pyplot as plt
+sns.lineplot(x=range(len(loss)), y =loss)
+plt.title('Training Loss per Epochs')
+
+traing_score = model.evaluate(x_train, y_train, verbose=0)
+testing_score = model.evaluate(x_test, y_test, verbose=0)
+
+traing_score
+
+testing_score
+
+pred = (model.predict(x_test)>0.5).astype('int32')
+pred
+
+compare = pd.DataFrame(y_test, columns = ['Y Test'])
+compare
+
+pred = pd.Series(pred.reshape(-1,))
+
+compare = pd.concat([pred,compare], axis=1)
+
+compare.columns= ['Y Predicted','Y Test']
+compare
+
+from sklearn.metrics import confusion_matrix,accuracy_score,f1_score,classification_report
+
+confusion_matrix(compare['Y Predicted'],compare['Y Test'])
+
+print(classification_report(compare['Y Predicted'],compare['Y Test']))
+
+   
